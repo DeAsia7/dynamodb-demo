@@ -4,7 +4,7 @@ const { DynamoDBClient, GetItemCommand } = require('@aws-sdk/client-dynamodb');
 // to start a dynamodb client
 
 const client = new DynamoDBClient({
-    region: 'us-west-2'
+    region: 'us-east-2'
 });
 
 // get user input
@@ -15,9 +15,9 @@ const password = readline.question('Enter your password: ', {hideEchoBack: true}
 // check our Db to see if username and password exist and if they match
 
 const params = { //get me the item from the table users with the username "mallory"
-    TableName: 'users',
-    key: {
-        'username': {S: username} // S stand for string
+    TableName: 'Users',
+    Key: {
+        UserName: {S: username} // S stand for string
     }
 };
 
@@ -30,7 +30,7 @@ const command = new GetItemCommand(params);
 const response = await client.send(command);
 
 // 3. validate that the info *(user was found)
-if (!Response.Item){
+if (!response.Item){
     console.log("User not found, Try again");
     return;
 }
