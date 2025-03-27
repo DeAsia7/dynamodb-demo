@@ -1,5 +1,5 @@
 const readline = require('readline-sync');
-const { DynamoDBClient, GetItemCommand, ScanCommand } = require('@aws-sdk/client-dynamodb');
+const { DynamoDBClient, GetItemCommand, ScanCommand, PutItemCommand } = require('@aws-sdk/client-dynamodb');
 
 const client = new DynamoDBClient({
     region: "us-east-2"
@@ -57,25 +57,45 @@ go thru the array of orders and print out or save ina varibale the coffee type
 async function viewOrderDetails(orderId) {
     //print all attributes of a certian order. 
     console.log("order Details")
-    for (const key in order) {
+
+    const params = {
+        TableName: 'CustomerOrder',
+        Key: {
+            orderId: { 
+                S: orderId }
+        }
+    }
+
+const command = new GetItemCommand(params);
+const response = await client.send(command);
+const order = response.Item;
+
+if (!order) {
+    console.log('Order not found');
+    return;
+
+}
+ console.log('Order Details:');
+     for (const key in order) {
         const value = order[key];
-        console.log(`${key}: ${object.values(value)[0]}`);
+       console.log(`${key}: ${object.values(value)[0]}`);
+
 }
 
 };
 
 async function addNewOrder(){
 const customerName = readline.question("Enter your name: ");
-const coffeeType = readline.question("Enter the coffee type: ");
-const quantity = readline.questionInt("Enter the quantity: ");
-const price = readline.questionFloat("Enter the price: ");
-const orderDate = new Date().toISOString().split('T')[0];
-const orderId = `order_$Math.floor(Math.random() * 1000000)`;
+const coffeeType = readline.question("Enter the coffee type:");
+const quantity = readline.questionInt("How many coffees do you want? "); //int is for number strings 
+const price = readline.questionFloat("Enter the price: "); //float is for decimal numbers
+const orderDate = new Date().toISOString().split('T')[0];  //iso string format is for the date. 
+const orderId = `order_${Math.floor(Math.random() * 10000)}`;
 
 const params ={
-    TableName: "CustomerOrders",
+    TableName: "CustomerOrder",
     Item: {
-        orderId: { S: orderId },
+        orderID: { S: orderId },
         customerName: { S: customerName },
         coffeeType: { S: coffeeType },
         quantity: { N: quantity.toString() },
@@ -87,10 +107,10 @@ const params ={
 try {
     const command = new PutItemCommand(params);
     await client.send(command);
-    console.log(`Order ${orderId} for ${customerName} placed successfully`);
+    console.log(`Order ${orderId} for ${customerName} placed successfully, Thank You! Come again!`);
 } catch (error) {
-    console.error(error);
-    console.log("Order not placed. Please try again");
+    console.error(" SORRY, FAILED TO ADD ORDER! ERROR: " ,error);
+   // console.log("Order not placed. Please try again");
 
 }
 };
@@ -99,6 +119,15 @@ async function listAllOrders(){
     const orders = await getAllOrders();
     if (!orders) {
         console.log("No orders found"); 
+        return;
+    }
+
+    console.log("all Orders: ");
+    for (const order of orders) {
+        const id = order.orderID.S;
+        const name = order.customerName.S;
+        console.log(`${id}: ${name}`);
+
     }
 };
 
@@ -107,7 +136,7 @@ async function main() {
     console.log("1. view total spent by a customer");
     console.log("2. view coffe orders by a customer");
     console.log("3. get full order details");
-    console.log("4. add a new order");
+    console.log("4. Add a new order");
     console.log("5. list all orders");
     console.log("6" )
 
@@ -152,7 +181,7 @@ async function main() {
 main();
 
 //Crud
-Create
-Read
-Update
-Delete
+//Create
+//Read
+//Update
+//Delete
