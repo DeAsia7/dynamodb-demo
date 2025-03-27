@@ -66,7 +66,7 @@ async function viewOrderDetails(orderId) {
         }
     }
 
-const command = new PutItemCommand(params);
+const command = new GetItemCommand(params);
 const response = await client.send(command);
 const order = response.Item;
 
