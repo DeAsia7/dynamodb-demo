@@ -6,7 +6,7 @@ const client = new DynamoDBClient({
 });
 
 async function getAllOrders(name) {
-const command = new ScanCommand({ TableName: "CustomerOrders" });
+const command = new ScanCommand({ TableName: "CustomerOrder" });
 const data = await client.send(command);
 return data.Items;
 }
@@ -17,13 +17,13 @@ const ordersByCustomers = orders.filter(order => order.customerName.S === name);
 let total = 0;
 
 for (const order of ordersByCustomers){ // loop thru the orders
-    const coffee = order.coffee.S; //s=string
+    const coffee = order.coffeeType.S; //s=string
     const quantity = order.quantity.N; //n-number
     const price = order.price.N;
-    const total = quantity * price;
-    total += total;
+    const subtotal = quantity * price;
+    total += subtotal;
 
-    console.log(`${order.orderId.S}: ${quantity} ${coffee}.s Each is ${price} * ${quantity} = ${total}`);
+    console.log(`${order.orderID.S}: ${quantity} ${coffee}.s Each is ${price} * ${quantity} = ${total}`);
 }
 console.log(`Total that ${name.toUpperCase()} has spent: ${total.toFixed(2)}.`);
 }
@@ -54,15 +54,15 @@ if (coffeeList.length > 0) {
 go thru the array of orders and print out or save ina varibale the coffee type
 */
  
-async function viewOrderDetails(orderId) {
+async function viewOrderDetails(orderID) {
     //print all attributes of a certian order. 
     console.log("order Details")
 
     const params = {
         TableName: 'CustomerOrder',
         Key: {
-            orderId: { 
-                S: orderId }
+            orderID: { 
+                S: orderID }
         }
     }
 
@@ -90,12 +90,12 @@ const coffeeType = readline.question("Enter the coffee type:");
 const quantity = readline.questionInt("How many coffees do you want? "); //int is for number strings 
 const price = readline.questionFloat("Enter the price: "); //float is for decimal numbers
 const orderDate = new Date().toISOString().split('T')[0];  //iso string format is for the date. 
-const orderId = `order_${Math.floor(Math.random() * 10000)}`;
+const orderID = `order_${Math.floor(Math.random() * 10000)}`;
 
 const params ={
     TableName: "CustomerOrder",
     Item: {
-        orderID: { S: orderId },
+        orderID: { S: orderID },
         customerName: { S: customerName },
         coffeeType: { S: coffeeType },
         quantity: { N: quantity.toString() },
@@ -107,7 +107,7 @@ const params ={
 try {
     const command = new PutItemCommand(params);
     await client.send(command);
-    console.log(`Order ${orderId} for ${customerName} placed successfully, Thank You! Come again!`);
+    console.log(`Order ${orderID} for ${customerName} placed successfully, Thank You! Come again!`);
 } catch (error) {
     console.error(" SORRY, FAILED TO ADD ORDER! ERROR: " ,error);
    // console.log("Order not placed. Please try again");
@@ -131,12 +131,12 @@ async function listAllOrders(){
     }
 };
 
-async function updateOrder(orderId){
+async function updateOrder(orderID){
 
     const params = {
         TableName: "CustomerOrder",
         Key: {
-            orderId: { S: orderId }
+            orderID: { S: orderID }
         }
     };
     try{
@@ -158,7 +158,7 @@ async function updateOrder(orderId){
         const updateParams = {
             TableName: "CustomerOrder",
             Key: {
-                orderId: { S: orderId }
+                orderID: { S: orderID }
             },
             UpdateExpression: "SET coffeeType = :ct, quantity = :q, price = :p",
             ExpressionAttributeValues: {
@@ -179,18 +179,18 @@ async function updateOrder(orderId){
 };
 
 
-async function deleteOrder(orderId){
+async function deleteOrder(orderID){
     const params = {
         TableName: "CustomerOrder",
         Key: {
-            orderId: { S: orderId }
+            orderID: { S: orderID }
         }
     };
 
     try {
         const command = new DeleteItemCommand(params);
         await client.send(command);
-        console.log(`Order ${orderId} has been deleted successfully`);
+        console.log(`Order ${orderID} has been deleted successfully`);
     } catch (error) {
         console.error("FAILED TO DELETE ORDER, TRY AGAIN!", error);
     }
@@ -221,8 +221,8 @@ async function main() {
              break;
          }
        case "3" : {
-              const orderId = readline.question("Enter the order id: ");
-              await viewOrderDetails(orderId);
+              const orderID = readline.question("Enter the order id: ");
+              await viewOrderDetails(orderID);
               break;
        }
          case "4" : {
@@ -234,13 +234,13 @@ async function main() {
                 break;
             }
             case "6" : {
-                const orderId = readline.question("Enter the order id: ");
-            await updateOrder(orderId);
+                const orderID = readline.question("Enter the order id: ");
+            await updateOrder(orderID);
             break;
             }
             case "7" : {
-                const orderId = readline.question("Enter the order id: ");
-                await deleteOrder(orderId);
+                const orderID = readline.question("Enter the order id: ");
+                await deleteOrder(orderID);
                 break;
             }
 
