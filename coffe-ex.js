@@ -56,7 +56,57 @@ go thru the array of orders and print out or save ina varibale the coffee type
  
 async function viewOrderDetails(orderId) {
     //print all attributes of a certian order. 
+    console.log("order Details")
+    for (const key in order) {
+        const value = order[key];
+        console.log(`${key}: ${object.values(value)[0]}`);
 }
+
+};
+
+async function addNewOrder(){
+const customerName = readline.question("Enter your name: ");
+const coffeeType = readline.question("Enter the coffee type: ");
+const quantity = readline.question("Enter the quantity: ");
+const price = readline.question("Enter the price: ");
+const orderDate = new Date().toISOString().split('T')[0];
+const orderId = `order_$Math.floor(Math.random() * 1000000)`;
+
+const params ={
+    TableName: "CustomerOrders",
+    Item: {
+        orderId: { S: orderId },
+        customerName: { S: customerName },
+        coffeeType: { S: coffeeType },
+        quantity: { N: quantity.toString() },
+        price: { N: price.toString() },
+        orderDate: { S: orderDate }
+    }
+};
+
+try {
+    const command = new PutItemCommand(params);
+    await client.send(command);
+    console.log(`Order ${orderId} for ${customerName} placed successfully`);
+} catch (error) {
+    console.error(error);
+    console.log("Order not placed. Please try again");
+
+}
+};
+
+async function listAllOrders(){
+    const orders = await getAllOrders();
+    if (!orders) {
+        console.log("No orders found"); 
+    }
+}
+    
+}
+
+
+
+
 
 
 async function main() {
