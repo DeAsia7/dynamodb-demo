@@ -140,7 +140,7 @@ async function updateOrder(orderId){
         }
     };
     try{
-        const command = new UpdateItemCommand(params);
+        const command = new GetItemCommand(params);
         const response = await client.send(command);
 
         if (!response.Item){
@@ -151,10 +151,10 @@ async function updateOrder(orderId){
         const currentQty = response.Item.quantity.N; //N is for number
         const currentPrice = response.Item.price.N; 
 
-        const newCoffee = readline.question(`Enter the new coffee type (${currentCoffee}): `) || currentCoffee; 
-        const newQty = readline.questionInt(`Enter the new quantity (${currentQty}): `) || currentQty; 
-        const newPrice = readline.questionFloat(`Enter the new price (${currentPrice}): `) || currentPrice;
-    
+        const newCoffee = readline.question(`Enter the new coffee type [${currentCoffee}]: `) || currentCoffee; 
+        const newQty = readline.question(`Enter the new quantity [${currentQty}]: `) || currentQty; 
+        const newPrice = readline.question(`Enter the new price [${currentPrice}]: `) || currentPrice;
+      // || equals or
         const updateParams = {
             TableName: "CustomerOrder",
             Key: {
@@ -169,11 +169,10 @@ async function updateOrder(orderId){
                  ReturnValues: "UPDATED_NEW"
         };
 
-        const command = new UpdateItemCommand(updateParams); 
-        const result =  await client.send(command);
-        console.log("Order updated successfully", result.Attributes);
-        // || equals or
-
+        const updateCommand = new UpdateItemCommand(updateParams); 
+        const result =  await client.send(updateCommand);
+        console.log("Order updated successfully:", result.Attributes);
+    
     } catch (error) {
         console.error(" FAILED TO UPDATE ORDER, TRY AGAIN!", error);
     }
