@@ -107,6 +107,9 @@ async function main() {
     console.log("1. view total spent by a customer");
     console.log("2. view coffe orders by a customer");
     console.log("3. get full order details");
+    console.log("4. add a new order");
+    console.log("5. list all orders");
+    console.log("6" )
 
     const option = readline.question("choose an option: ");
 
@@ -126,6 +129,20 @@ async function main() {
               await viewOrderDetails(orderId);
               break;
        }
+         case "4" : {
+              await addNewOrder();
+              break;
+         }
+            case "5" : {
+                await listAllOrders();
+                break;
+            }
+            case "6" : {
+                const orderId 
+            }
+            case "7" : {
+            }
+
          default: 
          console.log("Invalid option");
                     
@@ -133,3 +150,9 @@ async function main() {
 }
 
 main();
+
+//Crud
+Create
+Read
+Update
+Delete
