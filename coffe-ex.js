@@ -1,5 +1,5 @@
 const readline = require('readline-sync');
-const { DynamoDBClient, GetItemCommand, ScanCommand, PutItemCommand } = require('@aws-sdk/client-dynamodb');
+const { DynamoDBClient, GetItemCommand, ScanCommand, PutItemCommand, UpdateItemCommand, DeleteItemCommand } = require('@aws-sdk/client-dynamodb');
 
 const client = new DynamoDBClient({
     region: "us-east-2"
@@ -23,9 +23,9 @@ for (const order of ordersByCustomers){ // loop thru the orders
     const total = quantity * price;
     total += total;
 
-    console.log('${order.orderId.S}: ${quantity} ${coffee}.s Each is ${price} * ${quantity} = ${total}');
+    console.log(`${order.orderId.S}: ${quantity} ${coffee}.s Each is ${price} * ${quantity} = ${total}`);
 }
-console.log('Total that ${name.toUpperCase()} has spent: ${total.toFixed(2)}.');
+console.log(`Total that ${name.toUpperCase()} has spent: ${total.toFixed(2)}.`);
 }
 /* 
 name: "mallory"
@@ -47,7 +47,7 @@ for (const order of ordersByCustomers){
 if (coffeeList.length > 0) {
     console.log (`${name}: ${coffeeList.join(',')}.`);
 } else {
-    console.log('No orders found for ${name}');
+    console.log(`No orders found for ${name}`);
 }
 }
 /* 
@@ -66,7 +66,7 @@ async function viewOrderDetails(orderId) {
         }
     }
 
-const command = new GetItemCommand(params);
+const command = new PutItemCommand(params);
 const response = await client.send(command);
 const order = response.Item;
 
@@ -131,6 +131,73 @@ async function listAllOrders(){
     }
 };
 
+async function updateOrder(orderId){
+
+    const params = {
+        TableName: "CustomerOrder",
+        Key: {
+            orderId: { S: orderId }
+        }
+    };
+    try{
+        const command = new UpdateItemCommand(params);
+        const response = await client.send(command);
+
+        if (!response.Item){
+            console.log("Order not found");
+            return;
+        } 
+        const currentCoffee = response.Item.coffeeType.S;
+        const currentQty = response.Item.quantity.N; //N is for number
+        const currentPrice = response.Item.price.N; 
+
+        const newCoffee = readline.question(`Enter the new coffee type (${currentCoffee}): `) || currentCoffee; 
+        const newQty = readline.questionInt(`Enter the new quantity (${currentQty}): `) || currentQty; 
+        const newPrice = readline.questionFloat(`Enter the new price (${currentPrice}): `) || currentPrice;
+    
+        const updateParams = {
+            TableName: "CustomerOrder",
+            Key: {
+                orderId: { S: orderId }
+            },
+            UpdateExpression: "SET coffeeType = :ct, quantity = :q, price = :p",
+            ExpressionAttributeValues: {
+                ":ct": { S: newCoffee },
+                ":q": { N: newQty.toString() },
+                ":p": { N: newPrice.toString() }
+            },
+                 ReturnValues: "UPDATED_NEW"
+        };
+
+        const command = new UpdateItemCommand(updateParams); 
+        const result =  await client.send(command);
+        console.log("Order updated successfully", result.Attributes);
+        // || equals or
+
+    } catch (error) {
+        console.error(" FAILED TO UPDATE ORDER, TRY AGAIN!", error);
+    }
+};
+
+
+async function deleteOrder(orderId){
+    const params = {
+        TableName: "CustomerOrder",
+        Key: {
+            orderId: { S: orderId }
+        }
+    };
+
+    try {
+        const command = new DeleteItemCommand(params);
+        await client.send(command);
+        console.log(`Order ${orderId} has been deleted successfully`);
+    } catch (error) {
+        console.error("FAILED TO DELETE ORDER, TRY AGAIN!", error);
+    }
+
+};
+
 async function main() {
     console.log("welcome to coffechain order lookup")
     console.log("1. view total spent by a customer");
@@ -138,7 +205,8 @@ async function main() {
     console.log("3. get full order details");
     console.log("4. Add a new order");
     console.log("5. list all orders");
-    console.log("6" )
+    console.log("6. Update an order" );
+    console.log("7. Delete an order");
 
     const option = readline.question("choose an option: ");
 
@@ -167,9 +235,14 @@ async function main() {
                 break;
             }
             case "6" : {
-             //   const orderId 
+                const orderId = readline.question("Enter the order id: ");
+            await updateOrder(orderId);
+            break;
             }
             case "7" : {
+                const orderId = readline.question("Enter the order id: ");
+                await deleteOrder(orderId);
+                break;
             }
 
          default: 
@@ -179,9 +252,3 @@ async function main() {
 }
 
 main();
-
-//Crud
-//Create
-//Read
-//Update
-//Delete
