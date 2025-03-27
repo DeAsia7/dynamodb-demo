@@ -67,8 +67,8 @@ async function viewOrderDetails(orderId) {
 async function addNewOrder(){
 const customerName = readline.question("Enter your name: ");
 const coffeeType = readline.question("Enter the coffee type: ");
-const quantity = readline.question("Enter the quantity: ");
-const price = readline.question("Enter the price: ");
+const quantity = readline.questionInt("Enter the quantity: ");
+const price = readline.questionFloat("Enter the price: ");
 const orderDate = new Date().toISOString().split('T')[0];
 const orderId = `order_$Math.floor(Math.random() * 1000000)`;
 
@@ -100,14 +100,7 @@ async function listAllOrders(){
     if (!orders) {
         console.log("No orders found"); 
     }
-}
-    
-}
-
-
-
-
-
+};
 
 async function main() {
     console.log("welcome to coffechain order lookup")
